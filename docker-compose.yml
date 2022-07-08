@@ -1,0 +1,54 @@
+version: '2'
+
+services:
+
+  db:
+    image: sameersbn/mysql
+    container_name: mysql-db
+    restart: always
+    networks:
+      - mysql-tier
+    environment:
+      - DB_NAME=redmine_production
+      - DB_USER=redmine
+      - DB_PASS=password
+    volumes:
+      - /home/james/redmine/mysql:/var/lib/mysql
+    ports:
+      - 3306:3306
+
+  redmine:
+    image: jameswangcnln/redmine
+    container_name: redmine-app
+    restart: always
+    networks:
+      - mysql-tier
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 7802:80
+      - 8983:8983
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=redmine
+      - DB_PASS=password
+      - DB_NAME=redmine_production
+      - SMTP_USER=redmine@your.com
+      - SMTP_PASS=
+      - SMTP_HOST=smtp.mxhichina.com
+      - SMTP_PORT=587
+      - SMTP_TLS=false
+      - SMTP_STARTTLS=false
+      - SMTP_AUTHENTICATION=:login
+      - NGINX_MAX_UPLOAD_SIZE=100M
+    depends_on:
+      - db
+    volumes:
+      - /home/james/redmine/redmine:/home/redmine/data
+      - /home/james/redmine/backups:/home/redmine/data/backups
+
+networks:
+  mysql-tier:
+    driver: bridge
